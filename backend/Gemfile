@@ -1,0 +1,52 @@
+source 'https://rubygems.org'
+
+ruby '3.3.0'
+
+# ===========================
+# 🔹 Rails 本体 & 必要なライブラリ
+# ===========================
+gem 'rails', '7.0.8'
+gem 'pg', '~> 1.2'              # PostgreSQL 用
+gem 'redis', '~> 4.8'           # Redis クライアント
+gem 'puma', '~> 6.3'            # 高速 Web サーバー
+
+# ===========================
+# 🔹 認証 & セキュリティ
+# ===========================
+gem 'devise', '~> 4.9'          # ユーザー認証
+gem 'jwt', '~> 2.7'             # JWT 認証トークン
+gem 'rack-cors', '~> 2.0'       # CORS 設定
+
+# ===========================
+# 🔹 API & シリアライゼーション
+# ===========================
+gem 'jbuilder', '~> 2.11'       # JSON レスポンス生成
+gem 'active_model_serializers', '~> 0.10.12' # JSON API シリアライザ
+
+# ===========================
+# 🔹 バックグラウンドジョブ (Sidekiq)
+# ===========================
+gem 'sidekiq', '~> 7.1'         # 非同期ジョブ管理
+gem 'sidekiq-cron', '~> 1.9'    # 定期実行ジョブ
+
+# ===========================
+# 🔹 開発 & デバッグ
+# ===========================
+group :development, :test do
+  gem 'pry-rails', '~> 0.3.9'   # Rails コンソール強化
+  gem 'awesome_print', '~> 1.9' # 見やすいデバッグ出力
+  gem 'rubocop', '~> 1.61'      # コードスタイルチェック
+end
+
+group :development do
+  gem 'web-console', '>= 4.2.0' # Rails コンソール
+  gem 'listen', '~> 3.8'        # ファイル変更検知
+  gem 'spring', '~> 3.2'        # 開発用アプリプリロード
+  gem 'spring-watcher-listen', '~> 2.0.1'
+end
+
+group :test do
+  gem 'rspec-rails', '~> 6.0'   # RSpec テストフレームワーク
+  gem 'factory_bot_rails', '~> 6.4' # テストデータ作成
+  gem 'faker', '~> 3.2'         # ダミーデータ生成
+end

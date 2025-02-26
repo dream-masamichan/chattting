@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: chatwoot-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/chatwoot_development
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app
+      - gems:/usr/local/bundle
+
+  postgres:
+    image: postgres:14
+    container_name: chatwoot-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=chatwoot_development
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6
+    container_name: chatwoot-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+  gems:
