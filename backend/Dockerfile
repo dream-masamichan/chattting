@@ -1,7 +1,7 @@
 # ===========================
 # 🔹 1. ビルド環境 (builder)
 # ===========================
-FROM ruby:3.3.0 AS builder
+FROM ruby:3.2.2 AS builder
 
 # 環境変数を設定
 ENV RAILS_ENV=production \
