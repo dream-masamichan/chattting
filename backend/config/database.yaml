@@ -1,0 +1,28 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+  username: <%= ENV.fetch("DB_USERNAME") { "chattting" } %>
+  password: <%= ENV.fetch("DB_PASSWORD") { "password" } %>
+  host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("DB_PORT") { 5432 } %>
+  database: <%= ENV.fetch("DB_NAME") { "chattting_development" } %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DB_NAME_DEVELOPMENT") { "chattting_development" } %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("DB_NAME_TEST") { "chattting_test" } %>
+
+production:
+  <<: *default
+  database: <%= ENV["DB_NAME_PRODUCTION"] %>
+  username: <%= ENV["DB_USERNAME_PRODUCTION"] %>
+  password: <%= ENV["DB_PASSWORD_PRODUCTION"] %>
+  host: <%= ENV["DB_HOST_PRODUCTION"] %>
+  port: <%= ENV.fetch("DB_PORT_PRODUCTION", 5432) %>
+  sslmode: <%= ENV.fetch("DB_SSLMODE", "require") %>  # `require` にすると SSL 接続を強制
+  pool: <%= ENV.fetch("DB_POOL", 10) %>
