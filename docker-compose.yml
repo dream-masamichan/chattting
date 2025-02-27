@@ -1,40 +1,58 @@
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
-    build: .
-    container_name: chatwoot-backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chattting_backend
+    restart: always
     ports:
       - "3000:3000"
-    environment:
-      - RAILS_ENV=development
-      - DATABASE_URL=postgres://postgres:password@postgres:5432/chatwoot_development
-      - REDIS_URL=redis://redis:6379/0
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env  # 環境変数を適用
     volumes:
-      - .:/app
-      - gems:/usr/local/bundle
+      - ./backend:/app  # アプリのソースコードをコンテナにマウント
+      - bundle_cache:/gems  # gem のキャッシュを共有
+      - ./backend/docker/entrypoint.sh:/app/entrypoint.sh
+    entrypoint: ["/app/entrypoint.sh"]
 
   postgres:
     image: postgres:14
-    container_name: chatwoot-postgres
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=chatwoot_development
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    container_name: chattting_postgres
+    restart: always
     ports:
       - "5432:5432"
+    env_file:
+      - ./backend/.env  # 環境変数を適用
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
 
   redis:
-    image: redis:6
-    container_name: chatwoot-redis
+    image: redis:6.2
+    container_name: chattting_redis
+    restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
 
 volumes:
   postgres_data:
-  gems:
+  redis_data:
+  bundle_cache:

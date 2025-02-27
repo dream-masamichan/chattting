@@ -1,11 +1,15 @@
-set -e  # エラーが発生したら即終了
+#!/bin/sh
+set -e
 
-echo "🚀 chattting の Rails コンテナ起動スクリプト開始..."
+# データベースが起動するまで待機
+echo "Waiting for database..."
+while ! nc -z postgres 5432; do
+  sleep 1
+done
+echo "Database started"
 
-rm -f /app/tmp/pids/server.pid
+# Rails のセットアップ
+bundle exec rails db:migrate
 
-echo "🔄 データベースを確認..."
-bundle exec rails db:prepare  # `db:create`, `db:migrate` を自動実行
-
-echo "🚀 Rails サーバーを起動中..."
+# サーバー起動
 exec "$@"
