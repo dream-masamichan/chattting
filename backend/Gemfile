@@ -41,7 +41,8 @@ end
 group :development do
   gem 'web-console', '>= 4.2.0' # Rails コンソール
   gem 'listen', '~> 3.8'        # ファイル変更検知
-  gem 'spring', '~> 3.2'        # 開発用アプリプリロード
+  # gem 'spring', '~> 3.2'  # ← この行をコメントアウト
+  gem 'spring'  # ← 最新バージョンをインストール
   gem 'spring-watcher-listen', '~> 2.0.1'
 end
 

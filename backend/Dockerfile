@@ -1,13 +1,15 @@
 # ==============================
-# 1️⃣ Build Stage (builder)
+# 1️⃣ Build Stage (builder) - 依存パッケージをインストール
 # ==============================
-FROM ruby:3.2.2 AS builder
+FROM ruby:3.3.0 AS builder
 
-# 環境変数の設定 (インストール最適化)
+# 環境変数の設定
 ENV RAILS_ENV=production \
     BUNDLE_JOBS=4 \
     BUNDLE_RETRY=3 \
-    BUNDLE_PATH=/gems
+    BUNDLE_PATH=/gems \
+    NODE_ENV=production \
+    YARN_CACHE_FOLDER=/yarn_cache
 
 # 必要なパッケージをインストール
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
@@ -27,32 +29,33 @@ WORKDIR /app
 # Bundler を最新化
 RUN gem install bundler -v 2.5.11
 
-# Gemfile をコピー (キャッシュ最適化)
+# Gemfile を先にコピーし、キャッシュを活用
 COPY Gemfile Gemfile.lock ./
 
-# `bundle install` を実行 (キャッシュ利用)
-RUN bundle install --jobs=${BUNDLE_JOBS} --retry=${BUNDLE_RETRY} --without development test
+# `bundle install` (キャッシュを活用)
+RUN bundle config set without 'development test' && bundle install --jobs=${BUNDLE_JOBS} --retry=${BUNDLE_RETRY}
 
 # ==============================
-# 2️⃣ Runtime Stage (Final)
+# 2️⃣ Runtime Stage (Final) - 本番環境用のコンテナを作成
 # ==============================
-FROM ruby:3.2.2-slim
+FROM ruby:3.3.0-slim
 
 # `non-root` ユーザーを作成 (セキュリティ強化)
 RUN useradd -m appuser
 
-# 環境変数の設定 (本番環境向け)
+# 環境変数の設定 (実行環境向け)
 ENV RAILS_ENV=production \
     BUNDLE_JOBS=4 \
     BUNDLE_RETRY=3 \
     BUNDLE_PATH=/gems \
     RAILS_SERVE_STATIC_FILES=true \
-    RAILS_LOG_TO_STDOUT=true
+    RAILS_LOG_TO_STDOUT=true \
+    NODE_ENV=production
 
-# 作業ディレクトリを作成
+# 作業ディレクトリを設定
 WORKDIR /app
 
-# 必要なパッケージをインストール (最小限)
+# 必要なパッケージを最小限インストール
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   libpq-dev \
   imagemagick \
@@ -61,21 +64,32 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   postgresql-client \
   && rm -rf /var/lib/apt/lists/*
 
-# `builder` ステージから gem をコピー
+# `builder` ステージから gem をコピー (軽量化)
 COPY --from=builder /gems /gems
 
-# `non-root` ユーザーに変更
+# `non-root` ユーザーに変更 (セキュリティ向上)
 USER appuser
 
 # アプリケーションコードをコピー
 COPY . .
 
-# エントリーポイントスクリプトを設定
-COPY docker/entrypoint.sh /usr/bin/entrypoint.sh
-RUN chmod +x /usr/bin/entrypoint.sh
+# SHELL を `bash -c` に変更 (より安定したスクリプト実行)
+SHELL ["/bin/bash", "-c"]
+
+# ==============================
+# 📝 ここで `entrypoint.sh` を `/app/` にコピー
+# ==============================
+COPY docker/entrypoint.sh /app/entrypoint.sh
+
+# 実行権限を付与
+USER root
+RUN chmod +x /app/entrypoint.sh
+
+# `appuser` に戻す
+USER appuser
 
 # エントリーポイントを設定
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # デフォルトの Rails サーバー起動コマンド
 CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
