@@ -21,7 +21,8 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   tzdata \
   redis-tools \
   postgresql-client \
-  && rm -rf /var/lib/apt/lists/*
+  netcat \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* || true
 
 # 作業ディレクトリを作成
 WORKDIR /app
@@ -62,13 +63,11 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   tzdata \
   redis-tools \
   postgresql-client \
-  && rm -rf /var/lib/apt/lists/*
+  netcat \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* || true
 
 # `builder` ステージから gem をコピー (軽量化)
 COPY --from=builder /gems /gems
-
-# `non-root` ユーザーに変更 (セキュリティ向上)
-USER appuser
 
 # アプリケーションコードをコピー
 COPY . .
@@ -76,19 +75,16 @@ COPY . .
 # SHELL を `bash -c` に変更 (より安定したスクリプト実行)
 SHELL ["/bin/bash", "-c"]
 
-# ==============================
-# 📝 ここで `entrypoint.sh` を `/app/` にコピー
-# ==============================
+# ✅ `entrypoint.sh` を `/app/` に配置
 COPY docker/entrypoint.sh /app/entrypoint.sh
 
-# 実行権限を付与
-USER root
+# ✅ 実行権限を付与 (root 権限の間に実行)
 RUN chmod +x /app/entrypoint.sh
 
-# `appuser` に戻す
+# ✅ `non-root` ユーザーに変更 (セキュリティ向上)
 USER appuser
 
-# エントリーポイントを設定
+# ✅ エントリーポイントを設定
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # デフォルトの Rails サーバー起動コマンド
