@@ -3,7 +3,7 @@ set -e
 
 # データベースが起動するまで待機
 echo "Waiting for database..."
-while ! nc -z db 5432; do
+until command -v nc >/dev/null 2>&1 && nc -z db 5432; do
   sleep 1
 done
 echo "Database is up!"
