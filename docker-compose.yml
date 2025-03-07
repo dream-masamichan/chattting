@@ -71,6 +71,30 @@ services:
     networks:
       - app-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:80"
+    depends_on:
+      - web
+    networks:
+      - app-network
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    volumes:
+      - ./swagger:/usr/share/nginx/html
+    environment:
+      SWAGGER_JSON: /usr/share/nginx/html/swagger.json
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
   nginx:
     image: nginx:latest
     ports:
@@ -79,6 +103,10 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       web:
+        condition: service_started
+      frontend:
+        condition: service_started
+      swagger:
         condition: service_started
     networks:
       - app-network

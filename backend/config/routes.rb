@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "dashboard/index"
   # 📌 認証関連
   mount_devise_token_auth_for 'User', at: 'auth', controllers: {
     confirmations: 'devise_overrides/confirmations',

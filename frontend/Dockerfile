@@ -18,6 +18,9 @@ RUN npm ci
 # 残りのアプリコードをコピー
 COPY . .
 
+# Swagger UI用のファイルを配置
+COPY swagger/swagger.json /app/public/swagger.json
+
 # Vite アプリをビルド（dist フォルダが作成される）
 RUN npm run build
 
@@ -31,6 +34,9 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 # builder ステージからビルド済みの `dist` フォルダをコピー
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Swagger UIのJSONを提供するためにpublicディレクトリもコピー
+COPY --from=builder /app/public/swagger.json /usr/share/nginx/html/swagger.json
 
 # ポート 80 を公開
 EXPOSE 80
