@@ -1,24 +1,15 @@
-# 1️⃣ Ruby 3.2 の公式イメージをベースにする
-FROM ruby:3.2
-
-# 2️⃣ 必要なパッケージをインストール
-RUN apt-get update -qq && apt-get install -y \
-  nodejs yarn postgresql-client
-
-# 3️⃣ 作業ディレクトリを `/app` に設定
+# Build Stage
+FROM node:18 AS builder
 WORKDIR /app
-
-# 4️⃣ Bundler を最新バージョンに更新
-RUN gem install bundler
-
-# 5️⃣ Gemfile と Gemfile.lock をコピー（キャッシュ最適化のため）
-COPY Gemfile Gemfile.lock ./
-
-# 6️⃣ `bundle install` を実行
-RUN bundle install
-
-# 7️⃣ アプリケーションのソースコードをコピー
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
+RUN npm run build
 
-# 8️⃣ デフォルトのエントリーポイント（シェル起動）
-CMD ["sh"]
+# Production Stage
+FROM nginx:alpine AS production
+COPY ../docker/nginx.conf /etc/nginx/nginx.conf  
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY ../swagger/swagger.json /usr/share/nginx/html/swagger.json  
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
