@@ -52,6 +52,7 @@ group :development, :test do
   gem 'active_model_serializers'
   gem 'rswag'
   gem 'rswag-ui'
+  gem 'rack-cors'
 end
 
 

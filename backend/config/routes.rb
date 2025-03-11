@@ -1,7 +1,12 @@
 Rails.application.routes.draw do
   mount Rswag::Ui::Engine => '/api-docs'
   mount Rswag::Api::Engine => '/api-docs'
-  get "dashboard/index"
+  
+  namespace :api do
+    namespace :v1 do
+      get "dashboard/index", to: "dashboard#index"
+    end
+  end
 
   # 📌 Swagger API ドキュメント
   mount SwaggerUiEngine::Engine, at: "/api-docs"  # ✅ Swagger UI を追加
