@@ -50,6 +50,8 @@ group :development, :test do
   gem 'sidekiq'
   gem 'redis'
   gem 'active_model_serializers'
+  gem 'rswag'
+  gem 'rswag-ui'
 end
 
 
