@@ -4,7 +4,9 @@ Rails.application.routes.draw do
   
   namespace :api do
     namespace :v1 do
+      get '/app/*params', to: 'dashboard#index'
       get "dashboard/index", to: "dashboard#index"
+      get 'dashboard/accounts/:account_id/inboxes/new/twitter', to: 'dashboard#index', as: 'app_new_twitter_inbox'
     end
   end
 
